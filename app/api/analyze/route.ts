@@ -115,8 +115,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid assessment payload" }, { status: 400 });
     }
 
-    const key = process.env.OPENAI_API_KEY;
-    const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
+    const key = process.env.GEMINI_API_KEY;
+    const model = process.env.GEMINI_MODEL || "gemini-3-flash";
 
     if (!key) {
       const report = fallback(data);
@@ -139,22 +139,24 @@ ${JSON.stringify(data.responses || [], null, 2)}
 Generate the personalized report using only the supplied information.
 `;
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${key}`
-      },
-      body: JSON.stringify({
-        model,
-        temperature: 0.2,
-        response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: userPrompt }
-        ]
-      })
-    });
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": key
+        },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+          contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+          generationConfig: {
+            temperature: 0.2,
+            responseMimeType: "application/json"
+          }
+        })
+      }
+    );
 
     if (!response.ok) {
       const detail = await response.text();
@@ -165,7 +167,7 @@ Generate the personalized report using only the supplied information.
     }
 
     const json = await response.json();
-    const content = json?.choices?.[0]?.message?.content;
+    const content = json?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!content) {
       const report = fallback(data);
       const assessmentId = await saveAssessment(data, report);
