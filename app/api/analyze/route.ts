@@ -116,7 +116,7 @@ export async function POST(req: Request) {
     }
 
     const key = process.env.GEMINI_API_KEY;
-    const model = process.env.GEMINI_MODEL || "gemini-3-flash";
+    const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 
     if (!key) {
       const report = fallback(data);
