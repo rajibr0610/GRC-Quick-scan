@@ -88,7 +88,8 @@ export default function QuickScan() {
           domain: q.domain,
           question: q.text,
           answer: answers[q.id]
-        }))
+        })),
+        email
       };
       const res = await fetch("/api/analyze", {
         method: "POST",
@@ -130,16 +131,20 @@ export default function QuickScan() {
 
   async function refreshPaidStatus() {
     if (!assessmentId) return;
-    const res = await fetch(`/api/report-status?assessmentId=${encodeURIComponent(assessmentId)}`);
-    const data = await res.json();
-    const isPaid = !!data.paid;
-    setPaid(isPaid);
-    if (isPaid) {
-      const reportRes = await fetch(`/api/report?assessmentId=${encodeURIComponent(assessmentId)}`);
-      if (reportRes.ok) {
-        const reportData = await reportRes.json();
-        setFullReport(reportData.report);
+    try {
+      const res = await fetch(`/api/report-status?assessmentId=${encodeURIComponent(assessmentId)}`);
+      const data = await res.json();
+      const isPaid = !!data.paid;
+      setPaid(isPaid);
+      if (isPaid) {
+        const reportRes = await fetch(`/api/report?assessmentId=${encodeURIComponent(assessmentId)}`);
+        if (reportRes.ok) {
+          const reportData = await reportRes.json();
+          setFullReport(reportData.report);
+        }
       }
+    } catch (e: any) {
+      setAiError("Could not check payment status. Please try again.");
     }
   }
 

@@ -19,10 +19,15 @@ export async function POST(request: Request) {
 
       if (assessmentId) {
         const db = supabaseAdmin();
-        await db.from("assessments").update({
+        const { error } = await db.from("assessments").update({
           paid: true,
           whop_payment_id: payment.id
         }).eq("id", assessmentId);
+        if (error) {
+          console.error("Failed to mark assessment paid", error);
+          // Non-2xx so Whop retries delivery instead of considering this fulfilled.
+          return new Response("Failed to record payment", { status: 500 });
+        }
       }
     }
 

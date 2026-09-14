@@ -172,9 +172,17 @@ Generate the personalized report using only the supplied information.
       return NextResponse.json({ source: "fallback", preview: previewOf(report), assessmentId });
     }
 
-    const report = JSON.parse(content);
+    let report: any;
+    let source: "ai" | "fallback" = "ai";
+    try {
+      report = JSON.parse(content);
+    } catch (e) {
+      console.error("Failed to parse AI response as JSON", e);
+      report = fallback(data);
+      source = "fallback";
+    }
     const assessmentId = await saveAssessment(data, report);
-    return NextResponse.json({ source: "ai", preview: previewOf(report), assessmentId });
+    return NextResponse.json({ source, preview: previewOf(report), assessmentId });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Could not generate report" }, { status: 500 });
