@@ -68,7 +68,7 @@ The app now includes `/api/analyze`, which generates a structured GRC report fro
 2. Add your API key.
 3. Restart `npm run dev`.
 
-If `OPENAI_API_KEY` is not set, the app automatically generates a deterministic fallback report so the UI can still be tested.
+If `GEMINI_API_KEY` is not set, the app automatically generates a deterministic fallback report so the UI can still be tested.
 
 ### Important
 
